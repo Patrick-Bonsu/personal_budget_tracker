@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from transactions.models import Transaction
 from django.db.models import Sum
 from datetime import datetime
+from django.db.models import Sum, Q  # Q is for complex queries
+from django.db import models
 
 @login_required
 def dashboard_view(request):
