@@ -5,11 +5,34 @@ from .models import Transaction, Category
 from .forms import TransactionForm, CategoryForm
 from django.contrib.auth.decorators import login_required
 
+import csv
+from django.http import HttpResponse
+
+from .utils import convert_currency
+
+
+# List transactions
+@login_required
 # List transactions
 @login_required
 def transaction_list(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-    return render(request, "transactions/transaction_list.html", {"transactions": transactions})
+
+    # Check if a target currency is selected in GET parameters
+    target_currency = request.GET.get('currency', 'USD')
+
+    # Add converted_amount attribute to each transaction if currency is selected
+    if target_currency:
+        for tx in transactions:
+            # convert_currency(amount, from_currency, to_currency)
+            # assuming all transactions are in USD
+            tx.converted_amount = convert_currency(tx.amount, 'USD', target_currency)
+
+    context = {
+        "transactions": transactions,
+        "selected_currency": target_currency
+    }
+    return render(request, "transactions/transaction_list.html", context)
 
 # Add transaction
 @login_required
@@ -46,3 +69,22 @@ def delete_transaction(request, pk):
         transaction.delete()
         return redirect("transaction_list")
     return render(request, "transactions/transaction_confirm_delete.html", {"transaction": transaction})
+
+
+
+import csv
+from django.http import HttpResponse
+
+def export_transactions_csv(request):
+    transactions = Transaction.objects.filter(user=request.user)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Date', 'Category', 'Type', 'Amount', 'Description'])
+
+    for tx in transactions:
+        writer.writerow([tx.date, tx.category, tx.transaction_type, tx.amount, tx.description])
+
+    return response
