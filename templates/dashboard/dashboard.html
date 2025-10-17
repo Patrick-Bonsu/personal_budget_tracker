@@ -11,6 +11,29 @@
     <p>Total Expense: {{ total_expense }}</p>
     <p>Balance: {{ balance }}</p>
 
+    <!-- Total Income vs Expenses Chart -->
+    <h3>Total Income vs Expenses</h3>
+    <canvas id="incomeExpenseChart" width="400" height="200"></canvas>
+
+    <script>
+    const ctx2 = document.getElementById('incomeExpenseChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: ['Income', 'Expenses'],
+            datasets: [{
+                label: 'Amount',
+                data: [{{ total_income }}, {{ total_expense }}],  // use your existing context vars
+                backgroundColor: ['green', 'red']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+    </script>
+
     <!-- Optional: Chart -->
     <canvas id="monthlyChart" width="400" height="200"></canvas>
 
